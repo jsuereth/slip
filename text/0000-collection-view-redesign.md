@@ -37,7 +37,7 @@ underlying collection is lazy.  Scala's views are designed to have these aspects
 
 In addition to these core principles, Scala's current view library also attempts
 to memoize intermediate values of views.  This means that if we call `map` on
-a view, and then `take(5)`, the first five `map`ed values will be remembered
+a view, and then `take(5)`, the first five `map`ped values will be remembered
 by the view for any future operations.
 
 ## Problems with the current design.
@@ -218,7 +218,7 @@ the folding function used when folding a collection.  For example:
 List(1,2,3).foldLeft(0) { _ + _ }
 ```
 
-Here, the foldLeft function takes an accucmulator (starting at 0), and a folding
+Here, the `foldLeft` function takes an accumulator (starting at 0), and a folding
 function `{ _ +  _}`.  The folding function is responsible for joining each
 collection element to the accumulator, returning the next accumulator.
 
@@ -246,7 +246,7 @@ case class MapTransducer[A,B](f: A => B) extends Transducer[A,B] {
 }
 ```
 
-This implementation simple creates a new folding function which will first
+This implementation simply creates a new folding function which will first
 transform any element it receives using the mapping function `f` before
 delegating down to the original folding function.
 
@@ -293,7 +293,7 @@ TODO - More examples needed?
 ### Comparison Examples
 
 There are a class of problems where `Iterator` is a wholly better solution than
-`View`, which is the case even today with scala's existing views.  For example:
+`View`, which is the case even today with Scala's existing views.  For example:
 
 ```scala
 
@@ -316,7 +316,7 @@ val activePittsburghSalesPeopleByTerritory: Map[String, Seq[salesPerson]] = ...
 users.filter(isInPittsburgh).map(_.salesPerson).groupBy(_.territory)
 ```
 
-Here, groupBy is unavailble to the `Iterator` interface.
+Here, `groupBy` is unavailble to the `Iterator` interface.
 
 Additionally, views attempt to preserve the collection type which started a chain of operations, while
 iterators erase them.   This is a principle upheld throughout the collections API (the first type of the collection is the desired result), e.g.
@@ -345,8 +345,8 @@ chaining together a sequence of low-order transformation into a higher-level
 algorithm for your computation.
 
 
-On the other hand, scala.Stream is about lazily evaluating elements in a
-collection.  scala.Stream attempts to make infinite collections viable, for
+On the other hand, `scala.Stream` is about lazily evaluating elements in a
+collection.  `scala.Stream` attempts to make infinite collections viable, for
 example, the fibonacci sequence can be defined as:
 
 ```scala
@@ -355,16 +355,16 @@ example, the fibonacci sequence can be defined as:
 ```
 
 This recursive usage is completely fine for lazy collections.  Additionally, it
-is lazy collections which benefit more from foldRight optimizations.
+is lazy collections which benefit more from `foldRight` optimizations.
 
 The proposed view library is tuned to provide a simple and elegant method to
 defer operations to be later performed against collections.   It is not designed
 to solve the realm of lazy collections and algorithms that would benefit
-from efficient foldRight implementations.   We consider these
+from efficient `foldRight` implementations.   We consider these
 collection types and algorithms deserving of their own library, that pays
 special attention to the complexities of lazy computation.
 
-The proposed view library is finely tuned for deffering foldLeft operations,
+The proposed view library is finely tuned for deffering `foldLeft` operations,
 and specifically for collections which are finite.
 
 ## Drawbacks
@@ -378,7 +378,7 @@ The implementation proposed here has a few limitations which we'll discuss in or
 ### Parallel Collections and views
 While this library doesn't make the parallel view situation much worse, it
 limits the ability for views to ever perform their computations in parallel
-on a parallel collection.  This is due to the nature of the Fold operation
+on a parallel collection.  This is due to the nature of the `Fold` operation
 requiring sequential access, i.e. `(Accumulator, Element) => Accumulator`.
 
 It is possible for `Fold` operations to be parallelized, but it requires the
@@ -389,7 +389,7 @@ following restrictions:
     (i.e. there is an idempotent function:  
        `(Accumulator, Accumulator) => Accumulator`)
 
-There is no static mechanism in scala to enforce either of these two
+There is no static mechanism in Scala to enforce either of these two
 restrictions, therefore Parallel view design will be a bit trickier to support,
 and may require a much-restricted subset of the currently proposed
 collection methods *or* use less efficient implementations.
@@ -460,7 +460,7 @@ There were a few alternatives attempted before the current proposal:
     Unlike this, general optimizers could. Currently the proposed views infrastructure is quite simple and general inliner(either optimistic as Scala.js linker is, or pessimistic, as the linker that @DarkDimius'es Dotty linker is) should be able to optimize this code to a simple while cycle merging the two .map(_+1) operations together after several rounds of inlining.
 
    (An example solution using macros is available from [scala-blitz](https://github.com/axel-angel/scala-blitzview/tree/master/src/main/scala/scala/collection/view))
-3. Using `java.util.stream`.   Java provides a vew similar mechanism to
+3. Using `java.util.stream`.   Java provides a few similar mechanism to
    Transducers in Java 8, called `Collector`.  These collectors represent
    a more limited subset of what's expressible in Transducer, Additionally
    the current proposal could also be used from JDK7.  `java.util.Stream`
@@ -479,7 +479,7 @@ various tradeoffs.
     i.e. spans more use cases than the proposed interface.  Far better
     for all things transducer, not quite as nice, specifically, for view
     replacement.
-  * integrates into several popular libraries which are outside scala's
+  * integrates into several popular libraries which are outside Scala's
     core set (e.g. RxJava)
   * Handles specialization.
   * Larger code footprint.  
@@ -504,7 +504,7 @@ simply by capturing the `CanBuildFrom` that is implicit in most collection
 operations and updating our state to retain it.   We do not have to remember
 the input collection type, as long as we have our stack of transducers and
 a builder for our intended output type, which dramatically simplifies the type
-craftign in this library.
+crafting in this library.
 
 Additionally, the library provides flexible memoization via an explicit
 `memoize` method, which will run the collection + transducers through
@@ -541,15 +541,15 @@ object View {
 ```
 
 This provides all the necessities of a View API with little impact to existing
-scala code.   The new views will be completely optional, and not part of the
+Scala code.   The new views will be completely optional, and not part of the
 core collections library.
 
-TODO - Make a note of how new collections ONLY need to support the CanBuildFrom implicit mechanism to take advantage of the new views...
+TODO - Make a note of how new collections ONLY need to support the `CanBuildFrom` implicit mechanism to take advantage of the new views...
 
 
 ### Library Design and implementation
 
-The library will be contained in a new `scala.colelction.view` package.
+The library will be contained in a new `scala.collection.view` package.
 This package will contain three public class/module pairings:
 
 *scala.collection.view.Transducer*
@@ -559,7 +559,7 @@ This package will contain three public class/module pairings:
  * use a nicely marketed term which doesn't convey the meaning/implications immediately, but does well with SEO.
  *
  * Note:  A transducer is ALMOST a straight function, but we need to leave the Accumulator type unbound.
- *        In scala, these unbound universal types can be expressed via abstract classes + polymorphic inheritance.
+ *        In Scala, these unbound universal types can be expressed via abstract classes + polymorphic inheritance.
  *        There is no convenient "lambda" syntax for these types, but we attempt to give the best we can for this concept.
  */
 sealed abstract class Transducer[-A, +B] {
@@ -574,7 +574,7 @@ sealed abstract class Transducer[-A, +B] {
   /** Run another transducer after this transducer. */
   final def andThen[C](other: Transducer[B,C]): Transducer[A,C] = new JoinedTransducer(this, other)
 }
-/** A container for all the default implementations of transducers available for scala views. */
+/** A container for all the default implementations of transducers available for Scala views. */
 object Transducer {
   def identity[A]: Transducer[A,A] = ...
   def map[A,B](f: A => B): Transducer[A,B] = ...
@@ -589,7 +589,7 @@ object Transducer {
 ```scala
 /** A collection of staged operations (transducers) that we build up against a source collection type.
   *
-  * E.g., this could be a set of Map/FlatMap/Filter/slice operations to perform on a collection.   We assume
+  * E.g., this could be a set of Map/FlatMap/Filter/slice operations to perform on a collection.  We assume
   * all collection methods can be aggregated into transducers.
   */
 abstract class StagedCollectionOps[E] {
@@ -667,7 +667,7 @@ Where the existing staged collection operations are:
 - partition (returns 2 views)
 
 Each of these staged collection operations have corresponding
-Transducer operations.  These operations will be implemented by
+`Transducer` operations.  These operations will be implemented by
 capturing arguments and a new Builder for the collection, and appending
 the staged operation onto the transducer stack, for example:
 
@@ -716,7 +716,7 @@ The existing forced collection operations are:
 - to*  (toArray, toTraversable, `to[_]`, etc.)
 - mkString
 
-Each of these will have an associated Fold/Accumulator function that implementation
+Each of these will have an associated `Fold`/`Accumulator` function that implementation
 them.  For example:
 
 ```scala  
@@ -728,7 +728,7 @@ final def foldLeft_![Accumulator](acc: Accumulator)(f: (Accumulator, E) => Accum
 ### Forced vs. staged operations
 The library denotes a difference between forced and staged operations.
 
-Staged operations will not be computed, instead they will add a new Transducer
+Staged operations will not be computed, instead they will add a new `Transducer`
 onto the operation stack.
 
 Forced operations will cause the current transducer stack to be run against the
